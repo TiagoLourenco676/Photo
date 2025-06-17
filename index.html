@@ -8,612 +8,1463 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- React e ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel para JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
     <style>
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
-        .calendar-day { min-height: 6rem; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9fafb;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+        
+        .status-pendente {
+            background-color: #fef3c7;
+        }
+        
+        .status-concluido {
+            background-color: #dcfce7;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 2px;
+        }
+        
+        .btn-primary { background-color: #3b82f6; color: white; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-secondary { background-color: #6b7280; color: white; }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .tab-button {
+            padding: 12px 24px;
+            border: none;
+            background-color: #f9fafb;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+            border-bottom-color: #1d4ed8;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .stat-card {
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card p {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Estilos específicos para o calendário */
+        #calendarioDias > div {
+            min-height: 96px;
+            overflow-y: auto;
+        }
+        
+        #calendarioDias > div:hover {
+            background-color: #f8fafc !important;
+        }
+        
+        /* Scrollbar customizada para o calendário */
+        #calendarioDias > div::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        #calendarioDias > div::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        #calendarioDias > div::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 2px;
+        }
+        
+        /* Estilos para projetos organizados */
+        .projeto-container {
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .projeto-header {
+            background-color: #f9fafb;
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+            transition: background-color 0.2s;
+        }
+        
+        .projeto-header:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .projeto-header.ativo {
+            background-color: #dbeafe;
+            border-bottom-color: #3b82f6;
+        }
+        
+        .projeto-header:hover .projeto-toggle {
+            color: #3b82f6;
+        }
+        
+        .projeto-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .projeto-nome {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .projeto-detalhes {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .projeto-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .projeto-toggle {
+            font-size: 18px;
+            color: #6b7280;
+            transition: transform 0.2s;
+        }
+        
+        .projeto-toggle.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .projeto-content {
+            display: none;
+            background-color: white;
+            /* Garantir que cliques no conteúdo não propagam para o header */
+            position: relative;
+            z-index: 1;
+        }
+        
+        .projeto-content.expanded {
+            display: block;
+        }
+        
+        /* Garantir que apenas o header seja clicável para toggle */
+        .projeto-header {
+            position: relative;
+            z-index: 2;
+            /* Apenas o header deve responder a cliques para toggle */
+        }
+        
+        .projeto-stats {
+            padding: 8px 16px;
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .ensaios-table-container {
+            overflow-x: auto;
+        }
+        
+        .projeto-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .projeto-table th {
+            background-color: #f9fafb;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .projeto-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+        }
+        
+        .projeto-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* Estilos para edição ativa */
+        .projeto-table tr.bg-blue-50 {
+            background-color: #dbeafe !important;
+        }
+        
+        .projeto-table tr.bg-blue-50:hover {
+            background-color: #bfdbfe !important;
+        }
+        
+        .projeto-table input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Cursor pointer apenas no header do projeto */
+        .projeto-header {
+            cursor: pointer;
+        }
+        
+        .projeto-content {
+            cursor: default;
+        }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="min-h-screen p-4">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="bg-white shadow-lg rounded-lg p-6 mb-6">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <h1 class="text-3xl font-bold text-gray-800">
+                        Sistema de Acompanhamento de Ensaios Fotométricos
+                    </h1>
+                    <div class="flex gap-2">
+                        <button onclick="toggleSettings()" class="btn btn-secondary" title="Configurações">
+                            ⚙️ Config
+                        </button>
+                        <button onclick="exportCSV()" class="btn btn-success" title="Exportar CSV">
+                            📥 CSV
+                        </button>
+                        <button onclick="showAddForm()" class="btn btn-primary" title="Adicionar Ensaio">
+                            ➕ Adicionar
+                        </button>
+                    </div>
+                </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const { Calendar, CheckSquare, Plus, Download, Upload, Settings, Edit3, Trash2, Save, X, Clock, BarChart3 } = lucide;
+                <!-- Configurações -->
+                <div id="settings" class="hidden mt-4 p-4 bg-gray-100 rounded">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-bold mb-2">⚙️ Configurações do Cronograma</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <label class="font-medium">Fotometrias por dia:</label>
+                                    <input type="number" id="fotometriasPerDay" value="3" min="1" max="10" 
+                                           class="w-20 px-2 py-1 border rounded">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label class="font-medium">Data de início:</label>
+                                    <input type="date" id="dataInicio" 
+                                           class="px-2 py-1 border rounded">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label class="font-medium">Nome do projeto:</label>
+                                    <input type="text" id="nomeProjeto" placeholder="Ex: Cronograma Janeiro 2025" 
+                                           class="px-2 py-1 border rounded flex-1">
+                                </div>
+                                <button onclick="generateSchedule()" class="btn btn-primary w-full">
+                                    📅 Gerar Novo Cronograma
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-2">💾 Projetos Salvos</h4>
+                            <div id="projetosList" class="space-y-2 max-h-32 overflow-y-auto">
+                                <p class="text-gray-500 text-sm">Nenhum projeto salvo ainda</p>
+                            </div>
+                            <div class="mt-2 space-y-1">
+                                <button onclick="salvarProjeto()" class="btn btn-success w-full text-sm">
+                                    💾 Salvar Projeto Atual
+                                </button>
+                                <button onclick="exportarTodosProjetos()" class="btn btn-secondary w-full text-sm">
+                                    📤 Exportar Todos os Projetos
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        const FotometriaTracker = () => {
-            // Dados iniciais da planilha
-            const initialData = [
-                { id: 1, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "30°", driver: "SS-150VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 2, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "60°", driver: "SS-150VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 3, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "90°", driver: "SS-150VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 4, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "30°", driver: "SS-200VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 5, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "60°", driver: "SS-200VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 6, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "90°", driver: "SS-200VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 7, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "30°", driver: "SS-200VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 8, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "60°", driver: "SS-200VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 9, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "90°", driver: "SS-200VH-56B", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 10, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "30°", driver: "SS-240VH-XXXB", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 11, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "60°", driver: "SS-240VH-XXXB", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 12, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "90°", driver: "SS-240VH-XXXB", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 13, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "30°", driver: "SS-240VH-XXXB", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 14, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "60°", driver: "SS-240VH-XXXB", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
-                { id: 15, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "90°", driver: "SS-240VH-XXXB", 
-                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null }
-            ];
+            <!-- Navigation Tabs -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="flex border-b overflow-x-auto">
+                    <button onclick="showTab('lista')" class="tab-button active" id="tab-lista">
+                        📋 Lista de Ensaios
+                    </button>
+                    <button onclick="showTab('calendario')" class="tab-button" id="tab-calendario">
+                        📅 Calendário
+                    </button>
+                    <button onclick="showTab('estatisticas')" class="tab-button" id="tab-estatisticas">
+                        📊 Estatísticas
+                    </button>
+                </div>
+            </div>
 
-            const [data, setData] = useState(initialData);
-            const [activeTab, setActiveTab] = useState('lista');
-            const [editingId, setEditingId] = useState(null);
-            const [showAddForm, setShowAddForm] = useState(false);
-            const [fotometriasPerDay, setFotometriasPerDay] = useState(3);
-            const [showSettings, setShowSettings] = useState(false);
+            <!-- Content -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <!-- Lista de Ensaios -->
+                <div id="content-lista">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">📋 Lista de Ensaios</h2>
+                        <div class="flex gap-2">
+                            <button onclick="expandirTodosProjetos()" class="btn btn-secondary text-sm">
+                                📂 Expandir Todos
+                            </button>
+                            <button onclick="recolherTodosProjetos()" class="btn btn-secondary text-sm">
+                                📁 Recolher Todos
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="projetosContainer">
+                        <!-- Projetos serão renderizados aqui -->
+                    </div>
+                </div>
 
-            // Gerar cronograma automático
-            const generateSchedule = () => {
-                const today = new Date();
-                const pendingItems = data.filter(item => item.status === 'pendente');
-                const newData = [...data];
-                
-                let currentDate = new Date(today);
-                let dailyCount = 0;
-                
-                pendingItems.forEach((item, index) => {
-                    if (dailyCount >= fotometriasPerDay) {
-                        currentDate.setDate(currentDate.getDate() + 1);
-                        // Pular fins de semana
-                        while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-                            currentDate.setDate(currentDate.getDate() + 1);
+                <!-- Calendário -->
+                <div id="content-calendario" class="hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">📅 Calendário de Ensaios</h2>
+                        <div class="flex gap-2">
+                            <select id="mesCalendario" onchange="renderCalendario()" class="px-3 py-1 border rounded">
+                                <!-- Opções serão preenchidas pelo JavaScript -->
+                            </select>
+                            <select id="anoCalendario" onchange="renderCalendario()" class="px-3 py-1 border rounded">
+                                <!-- Opções serão preenchidas pelo JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    <div id="calendario" class="border rounded">
+                        <div class="grid grid-cols-7 gap-0 border-b">
+                            <div class="p-3 text-center font-bold bg-gray-200">Dom</div>
+                            <div class="p-3 text-center font-bold bg-gray-200">Seg</div>
+                            <div class="p-3 text-center font-bold bg-gray-200">Ter</div>
+                            <div class="p-3 text-center font-bold bg-gray-200">Qua</div>
+                            <div class="p-3 text-center font-bold bg-gray-200">Qui</div>
+                            <div class="p-3 text-center font-bold bg-gray-200">Sex</div>
+                            <div class="p-3 text-center font-bold bg-gray-200">Sáb</div>
+                        </div>
+                        <div id="calendarioDias" class="grid grid-cols-7 gap-0">
+                            <!-- Dias serão preenchidos pelo JavaScript -->
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-blue-50 rounded">
+                        <p class="text-sm text-blue-800">
+                            <strong>💡 Dica:</strong> Use "Gerar Novo Cronograma" nas configurações para distribuir os ensaios pendentes no calendário.
+                            <span class="ml-4">🟡 Pendente</span>
+                            <span class="ml-4">🟢 Concluído</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div id="content-estatisticas" class="hidden">
+                    <h2 class="text-2xl font-bold mb-4">📊 Estatísticas do Projeto Atual</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card bg-blue-100">
+                            <h3 class="text-blue-800">Total de Ensaios</h3>
+                            <p class="text-blue-600" id="stat-total">15</p>
+                        </div>
+                        <div class="stat-card bg-green-100">
+                            <h3 class="text-green-800">Concluídos</h3>
+                            <p class="text-green-600" id="stat-concluidos">0</p>
+                        </div>
+                        <div class="stat-card bg-yellow-100">
+                            <h3 class="text-yellow-800">Pendentes</h3>
+                            <p class="text-yellow-600" id="stat-pendentes">15</p>
+                        </div>
+                        <div class="stat-card bg-purple-100">
+                            <h3 class="text-purple-800">Taxa de Conclusão</h3>
+                            <p class="text-purple-600" id="stat-taxa">0%</p>
+                        </div>
+                        <div class="stat-card bg-indigo-100">
+                            <h3 class="text-indigo-800">Agendados</h3>
+                            <p class="text-indigo-600 stat-agendados" id="stat-agendados">0</p>
+                        </div>
+                        <div class="stat-card bg-gray-100">
+                            <h3 class="text-gray-800">Projetos Salvos</h3>
+                            <p class="text-gray-600" id="stat-projetos">0</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <h3 class="font-bold text-blue-800 mb-2">ℹ️ Informações</h3>
+                        <ul class="text-sm text-blue-700 space-y-1">
+                            <li>• <strong>Projeto Atual:</strong> Os ensaios que você está trabalhando no momento</li>
+                            <li>• <strong>Projetos Salvos:</strong> Cronogramas anteriores que podem ser editados independentemente</li>
+                            <li>• <strong>Agendados:</strong> Ensaios com data definida no cronograma</li>
+                            <li>• <strong>Taxa de Conclusão:</strong> Percentual de ensaios com resultados preenchidos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar ensaio -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4">➕ Adicionar Novo Ensaio</h3>
+            <div id="modalProjectInfo" class="mb-4 p-2 bg-blue-50 rounded text-sm text-blue-800">
+                <strong>Adicionando ao:</strong> <span id="modalProjectName">Projeto Atual</span>
+            </div>
+            <div class="form-group">
+                <label>Modelo:</label>
+                <input type="text" id="newModelo" placeholder="Ex: PRJ4">
+            </div>
+            <div class="form-group">
+                <label>Potência (W):</label>
+                <input type="number" id="newPotencia" placeholder="Ex: 150">
+            </div>
+            <div class="form-group">
+                <label>LED:</label>
+                <input type="text" id="newLed" placeholder="Ex: ZS245B 5000K">
+            </div>
+            <div class="form-group">
+                <label>Lente:</label>
+                <input type="text" id="newLente" placeholder="Ex: 30°">
+            </div>
+            <div class="form-group">
+                <label>Driver:</label>
+                <input type="text" id="newDriver" placeholder="Ex: SS-150VH-56B">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="addEnsaio()" class="btn btn-primary flex-1">➕ Adicionar Ensaio</button>
+                <button onclick="hideAddForm()" class="btn btn-secondary flex-1">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados dos ensaios
+        let ensaios = [
+            { id: 1, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "30°", driver: "SS-150VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 2, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "60°", driver: "SS-150VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 3, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "90°", driver: "SS-150VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 4, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "30°", driver: "SS-200VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 5, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "60°", driver: "SS-200VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 6, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "90°", driver: "SS-200VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 7, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "30°", driver: "SS-200VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 8, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "60°", driver: "SS-200VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 9, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "90°", driver: "SS-200VH-56B", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 10, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "30°", driver: "SS-240VH-XXXB", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 11, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "60°", driver: "SS-240VH-XXXB", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 12, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "90°", driver: "SS-240VH-XXXB", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 13, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "30°", driver: "SS-240VH-XXXB", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 14, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "60°", driver: "SS-240VH-XXXB", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+            { id: 15, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "90°", driver: "SS-240VH-XXXB", 
+              numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null }
+        ];
+
+        let editingId = null;
+        let editingProjectId = null; // Novo: para saber qual projeto está sendo editado
+        let projetos = JSON.parse(localStorage.getItem('fotometriaProjetos')) || [];
+        let projetoAtual = null;
+
+        // Renderizar projetos organizados
+        function renderTable() {
+            const container = document.getElementById('projetosContainer');
+            container.innerHTML = '';
+
+            // Projeto atual (ensaios não salvos)
+            const projetoAtualDiv = criarProjetoDiv('atual', {
+                nome: 'Projeto Atual',
+                detalhes: 'Ensaios do trabalho atual',
+                ensaios: ensaios,
+                isAtual: true
+            });
+            container.appendChild(projetoAtualDiv);
+
+            // Projetos salvos
+            projetos.forEach(projeto => {
+                const projetoDiv = criarProjetoDiv(projeto.id, projeto);
+                container.appendChild(projetoDiv);
+            });
+            
+            updateStats();
+        }
+
+        // Criar div de projeto
+        function criarProjetoDiv(projetoId, projeto) {
+            const div = document.createElement('div');
+            div.className = 'projeto-container';
+            div.id = `projeto-${projetoId}`;
+
+            const totalEnsaios = projeto.ensaios.length;
+            const concluidos = projeto.ensaios.filter(e => e.status === 'concluido').length;
+            const pendentes = totalEnsaios - concluidos;
+            const comData = projeto.ensaios.filter(e => e.dataAgendada).length;
+
+            div.innerHTML = `
+                <div class="projeto-header" onclick="toggleProjeto('${projetoId}')">
+                    <div class="projeto-info">
+                        <span class="projeto-toggle" id="toggle-${projetoId}">▶</span>
+                        <div>
+                            <div class="projeto-nome">
+                                ${projeto.isAtual ? '📝' : '💾'} ${projeto.nome}
+                                ${projeto.isAtual ? '' : `<span class="text-xs text-blue-600 ml-2">(Editável)</span>`}
+                            </div>
+                            <div class="projeto-detalhes">
+                                ${projeto.dataCreacao ? `Criado: ${formatarData(projeto.dataCreacao)}` : 'Trabalho atual'} | 
+                                ${totalEnsaios} ensaios | ${concluidos} concluídos | ${comData} agendados
+                                ${projeto.fotometriasPerDay ? ` | ${projeto.fotometriasPerDay} fotometrias/dia` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="projeto-actions" onclick="event.stopPropagation()">
+                        ${!projeto.isAtual ? `
+                            <button onclick="duplicarProjeto(${projeto.id})" 
+                                    class="btn btn-secondary text-xs" title="Duplicar Projeto">
+                                📋 Duplicar
+                            </button>
+                            <button onclick="exportarProjeto(${projeto.id})" 
+                                    class="btn btn-primary text-xs" title="Exportar Projeto">
+                                📥 Exportar
+                            </button>
+                            <button onclick="deletarProjeto(${projeto.id})" 
+                                    class="btn btn-danger text-xs" title="Deletar Projeto">
+                                🗑️
+                            </button>
+                        ` : `
+                            <button onclick="showAddFormForProject('atual')" 
+                                    class="btn btn-primary text-xs" title="Adicionar Novo Ensaio">
+                                ➕ Novo Ensaio
+                            </button>
+                        `}
+                    </div>
+                </div>
+                <div class="projeto-content" id="content-${projetoId}" onclick="event.stopPropagation()">
+                    <div class="projeto-stats">
+                        <strong>Resumo:</strong> 
+                        <span class="text-green-600">${concluidos} concluídos</span> | 
+                        <span class="text-yellow-600">${pendentes} pendentes</span> | 
+                        <span class="text-blue-600">${comData} agendados</span>
+                        ${projeto.isAtual ? '' : '<span class="text-purple-600 ml-4">✏️ Clique em "Editar" para modificar ensaios</span>'}
+                    </div>
+                    <div class="ensaios-table-container">
+                        ${criarTabelaEnsaios(projeto.ensaios, projetoId, projeto)}
+                    </div>
+                </div>
+            `;
+
+            return div;
+        }
+
+        // Criar tabela de ensaios para um projeto
+        function criarTabelaEnsaios(ensaiosProjeto, projetoId, projeto = null) {
+            return `
+                <table class="projeto-table">
+                    <thead>
+                        <tr>
+                            <th>Modelo</th>
+                            <th>Potência (W)</th>
+                            <th>LED</th>
+                            <th>Lente</th>
+                            <th>Driver</th>
+                            <th>Data Agendada</th>
+                            <th>N° Ensaio</th>
+                            <th>Potência Real</th>
+                            <th>Fluxo (lm)</th>
+                            <th>EFF (lm/W)</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ensaiosProjeto.map(ensaio => criarLinhaEnsaio(ensaio, projetoId, projeto)).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Criar linha de ensaio
+        function criarLinhaEnsaio(ensaio, projetoId, projeto = null) {
+            const statusClass = ensaio.status === 'concluido' ? 'status-concluido' : 'status-pendente';
+            const isAtual = projetoId === 'atual';
+            
+            if (editingId === ensaio.id && editingProjectId === projetoId) {
+                return `
+                    <tr class="bg-blue-50">
+                        <td>${ensaio.modelo}</td>
+                        <td>${ensaio.potenciaW}W</td>
+                        <td>${ensaio.led}</td>
+                        <td>${ensaio.lente}</td>
+                        <td>${ensaio.driver}</td>
+                        <td class="text-sm text-gray-600">${formatarData(ensaio.dataAgendada)}</td>
+                        <td><input type="text" id="edit-numero-${ensaio.id}" value="${ensaio.numeroEnsaio}" class="w-full px-2 py-1 border rounded text-xs"></td>
+                        <td><input type="number" id="edit-potencia-${ensaio.id}" value="${ensaio.potenciaReal}" class="w-full px-2 py-1 border rounded text-xs"></td>
+                        <td><input type="number" id="edit-fluxo-${ensaio.id}" value="${ensaio.fluxoLm}" class="w-full px-2 py-1 border rounded text-xs"></td>
+                        <td><input type="number" id="edit-eff-${ensaio.id}" value="${ensaio.effLmW}" class="w-full px-2 py-1 border rounded text-xs"></td>
+                        <td>
+                            <button onclick="event.stopPropagation(); saveEdit(${ensaio.id}, '${projetoId}')" class="btn btn-success text-xs">💾</button>
+                            <button onclick="event.stopPropagation(); cancelEdit()" class="btn btn-secondary text-xs">❌</button>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            const dataAgendadaFormatada = ensaio.dataAgendada 
+                ? `<span class="text-blue-600 font-medium">${formatarData(ensaio.dataAgendada)}</span>`
+                : '<span class="text-gray-400">Não agendado</span>';
+            
+            return `
+                <tr class="${statusClass}">
+                    <td>${ensaio.modelo}</td>
+                    <td>${ensaio.potenciaW}W</td>
+                    <td>${ensaio.led}</td>
+                    <td>${ensaio.lente}</td>
+                    <td>${ensaio.driver}</td>
+                    <td class="text-sm">${dataAgendadaFormatada}</td>
+                    <td>${ensaio.numeroEnsaio || '-'}</td>
+                    <td>${ensaio.potenciaReal ? ensaio.potenciaReal + 'W' : '-'}</td>
+                    <td>${ensaio.fluxoLm ? ensaio.fluxoLm + ' lm' : '-'}</td>
+                    <td>${ensaio.effLmW ? ensaio.effLmW + ' lm/W' : '-'}</td>
+                    <td>
+                        ${ensaio.status === 'pendente' ? 
+                            `<button onclick="event.stopPropagation(); editEnsaio(${ensaio.id}, '${projetoId}')" class="btn btn-primary text-xs">✏️ Editar</button>` :
+                            '<span style="color: green; font-size: 12px;">✅ Concluído</span>'
                         }
-                        dailyCount = 0;
-                    }
-                    
-                    const itemIndex = newData.findIndex(d => d.id === item.id);
-                    newData[itemIndex] = {
-                        ...newData[itemIndex],
-                        dataAgendada: new Date(currentDate).toISOString().split('T')[0]
-                    };
-                    
-                    dailyCount++;
-                });
+                        <button onclick="event.stopPropagation(); deleteEnsaio(${ensaio.id}, '${projetoId}')" class="btn btn-danger text-xs">🗑️</button>
+                        ${isAtual ? `<button onclick="event.stopPropagation(); showAddFormForProject('${projetoId}')" class="btn btn-success text-xs" title="Adicionar ensaio similar">➕</button>` : ''}
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Toggle projeto (expandir/recolher)
+        function toggleProjeto(projetoId) {
+            const content = document.getElementById(`content-${projetoId}`);
+            const toggle = document.getElementById(`toggle-${projetoId}`);
+            const header = content.previousElementSibling;
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+                toggle.textContent = '▶';
+                header.classList.remove('ativo');
+            } else {
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+                toggle.textContent = '▼';
+                header.classList.add('ativo');
+            }
+        }
+
+        // Expandir todos os projetos
+        function expandirTodosProjetos() {
+            document.querySelectorAll('.projeto-content').forEach(content => {
+                const projetoId = content.id.replace('content-', '');
+                const toggle = document.getElementById(`toggle-${projetoId}`);
+                const header = content.previousElementSibling;
                 
-                setData(newData);
-            };
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+                toggle.textContent = '▼';
+                header.classList.add('ativo');
+            });
+        }
 
-            // Função para marcar como concluído
-            const markAsCompleted = (id, results) => {
-                const newData = data.map(item => {
-                    if (item.id === id) {
-                        return {
-                            ...item,
-                            ...results,
-                            status: 'concluido'
-                        };
-                    }
-                    return item;
-                });
-                setData(newData);
-                setEditingId(null);
-            };
+        // Recolher todos os projetos
+        function recolherTodosProjetos() {
+            document.querySelectorAll('.projeto-content').forEach(content => {
+                const projetoId = content.id.replace('content-', '');
+                const toggle = document.getElementById(`toggle-${projetoId}`);
+                const header = content.previousElementSibling;
+                
+                content.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+                toggle.textContent = '▶';
+                header.classList.remove('ativo');
+            });
+        }
 
-            // Função para adicionar novo ensaio
-            const addNewTest = (newTest) => {
-                const newId = Math.max(...data.map(item => item.id)) + 1;
-                const newItem = {
+        // Editar ensaio
+        function editEnsaio(id) {
+            console.log('Editando ensaio ID:', id);
+            
+            // Cancelar edição anterior se houver
+            if (editingId !== null && editingId !== id) {
+                editingId = null;
+            }
+            
+            editingId = id;
+            renderTable();
+            
+            // Focar no primeiro campo de edição após renderizar
+            setTimeout(() => {
+                const firstInput = document.getElementById(`edit-numero-${id}`);
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
+        }
+
+        // Salvar edição
+        function saveEdit(id) {
+            const ensaio = ensaios.find(e => e.id === id);
+            ensaio.numeroEnsaio = document.getElementById(`edit-numero-${id}`).value;
+            ensaio.potenciaReal = document.getElementById(`edit-potencia-${id}`).value;
+            ensaio.fluxoLm = document.getElementById(`edit-fluxo-${id}`).value;
+            ensaio.effLmW = document.getElementById(`edit-eff-${id}`).value;
+            
+            if (ensaio.numeroEnsaio || ensaio.potenciaReal || ensaio.fluxoLm || ensaio.effLmW) {
+                ensaio.status = 'concluido';
+            }
+            
+            editingId = null;
+            renderTable();
+        }
+
+        // Cancelar edição
+        function cancelEdit() {
+            editingId = null;
+            renderTable();
+        }
+
+        // Deletar ensaio
+        function deleteEnsaio(id) {
+            if (confirm('Tem certeza que deseja deletar este ensaio?')) {
+                ensaios = ensaios.filter(e => e.id !== id);
+                renderTable();
+            }
+        }
+
+        // Mostrar formulário de adicionar
+        function showAddForm() {
+            document.getElementById('addModal').classList.add('show');
+            
+            // Focar no primeiro campo
+            setTimeout(() => {
+                const firstInput = document.getElementById('newModelo');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
+        }
+
+        // Esconder formulário de adicionar
+        function hideAddForm() {
+            document.getElementById('addModal').classList.remove('show');
+            // Limpar todos os campos
+            document.getElementById('newModelo').value = '';
+            document.getElementById('newPotencia').value = '';
+            document.getElementById('newLed').value = '';
+            document.getElementById('newLente').value = '';
+            document.getElementById('newDriver').value = '';
+        }
+
+        // Adicionar ensaio
+        function addEnsaio() {
+            const modelo = document.getElementById('newModelo').value;
+            const potencia = document.getElementById('newPotencia').value;
+            const led = document.getElementById('newLed').value;
+            const lente = document.getElementById('newLente').value;
+            const driver = document.getElementById('newDriver').value;
+
+            if (modelo && potencia && led && lente && driver) {
+                const newId = Math.max(...ensaios.map(e => e.id)) + 1;
+                ensaios.push({
                     id: newId,
-                    ...newTest,
+                    modelo: modelo,
+                    potenciaW: parseInt(potencia),
+                    led: led,
+                    lente: lente,
+                    driver: driver,
                     numeroEnsaio: "",
                     potenciaReal: "",
                     fluxoLm: "",
                     effLmW: "",
                     status: "pendente",
                     dataAgendada: null
-                };
-                setData([...data, newItem]);
-                setShowAddForm(false);
-            };
-
-            // Função para deletar ensaio
-            const deleteTest = (id) => {
-                setData(data.filter(item => item.id !== id));
-            };
-
-            // Função para exportar CSV
-            const exportCSV = () => {
-                const headers = ['Modelo', 'Potência (W)', 'LED', 'Lente', 'Driver', 'N° ensaio realizado', 'Potência', 'Fluxo (lm)', 'EFF (lm/W)', 'Status', 'Data Agendada'];
-                const csvContent = [
-                    headers.join(','),
-                    ...data.map(item => [
-                        item.modelo,
-                        item.potenciaW,
-                        item.led,
-                        item.lente,
-                        item.driver,
-                        item.numeroEnsaio,
-                        item.potenciaReal,
-                        item.fluxoLm,
-                        item.effLmW,
-                        item.status,
-                        item.dataAgendada || ''
-                    ].join(','))
-                ].join('\n');
-
-                const blob = new Blob([csvContent], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.setAttribute('hidden', '');
-                a.setAttribute('href', url);
-                a.setAttribute('download', 'ensaios_fotometricos.csv');
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            };
-
-            // Componente de edição inline
-            const EditableRow = ({ item, onSave, onCancel }) => {
-                const [values, setValues] = useState({
-                    numeroEnsaio: item.numeroEnsaio,
-                    potenciaReal: item.potenciaReal,
-                    fluxoLm: item.fluxoLm,
-                    effLmW: item.effLmW
                 });
+                renderTable();
+                hideAddForm();
+            } else {
+                alert('Por favor, preencha todos os campos!');
+            }
+        }
 
-                const handleSave = () => {
-                    onSave(item.id, values);
-                };
-
-                return (
-                    <tr className="bg-blue-50">
-                        <td className="px-4 py-2 border">{item.modelo}</td>
-                        <td className="px-4 py-2 border">{item.potenciaW}W</td>
-                        <td className="px-4 py-2 border">{item.led}</td>
-                        <td className="px-4 py-2 border">{item.lente}</td>
-                        <td className="px-4 py-2 border">{item.driver}</td>
-                        <td className="px-4 py-2 border">
-                            <input
-                                type="text"
-                                value={values.numeroEnsaio}
-                                onChange={(e) => setValues({...values, numeroEnsaio: e.target.value})}
-                                className="w-full px-2 py-1 border rounded"
-                                placeholder="N° ensaio"
-                            />
-                        </td>
-                        <td className="px-4 py-2 border">
-                            <input
-                                type="number"
-                                value={values.potenciaReal}
-                                onChange={(e) => setValues({...values, potenciaReal: e.target.value})}
-                                className="w-full px-2 py-1 border rounded"
-                                placeholder="Potência real"
-                            />
-                        </td>
-                        <td className="px-4 py-2 border">
-                            <input
-                                type="number"
-                                value={values.fluxoLm}
-                                onChange={(e) => setValues({...values, fluxoLm: e.target.value})}
-                                className="w-full px-2 py-1 border rounded"
-                                placeholder="Fluxo (lm)"
-                            />
-                        </td>
-                        <td className="px-4 py-2 border">
-                            <input
-                                type="number"
-                                value={values.effLmW}
-                                onChange={(e) => setValues({...values, effLmW: e.target.value})}
-                                className="w-full px-2 py-1 border rounded"
-                                placeholder="EFF (lm/W)"
-                            />
-                        </td>
-                        <td className="px-4 py-2 border">
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handleSave}
-                                    className="p-1 bg-green-500 text-white rounded hover:bg-green-600"
-                                >
-                                    <Save size={16} />
-                                </button>
-                                <button
-                                    onClick={onCancel}
-                                    className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                );
-            };
-
-            // Componente de formulário para novo ensaio
-            const AddTestForm = ({ onAdd, onCancel }) => {
-                const [newTest, setNewTest] = useState({
-                    modelo: '',
-                    potenciaW: '',
-                    led: '',
-                    lente: '',
-                    driver: ''
-                });
-
-                const handleSubmit = () => {
-                    if (newTest.modelo && newTest.potenciaW && newTest.led && newTest.lente && newTest.driver) {
-                        onAdd(newTest);
-                        setNewTest({ modelo: '', potenciaW: '', led: '', lente: '', driver: '' });
-                    }
-                };
-
-                return (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-lg w-96">
-                            <h3 className="text-lg font-bold mb-4">Adicionar Novo Ensaio</h3>
-                            <div className="space-y-4">
-                                <input
-                                    type="text"
-                                    placeholder="Modelo"
-                                    value={newTest.modelo}
-                                    onChange={(e) => setNewTest({...newTest, modelo: e.target.value})}
-                                    className="w-full px-3 py-2 border rounded"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Potência (W)"
-                                    value={newTest.potenciaW}
-                                    onChange={(e) => setNewTest({...newTest, potenciaW: parseInt(e.target.value)})}
-                                    className="w-full px-3 py-2 border rounded"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="LED"
-                                    value={newTest.led}
-                                    onChange={(e) => setNewTest({...newTest, led: e.target.value})}
-                                    className="w-full px-3 py-2 border rounded"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Lente"
-                                    value={newTest.lente}
-                                    onChange={(e) => setNewTest({...newTest, lente: e.target.value})}
-                                    className="w-full px-3 py-2 border rounded"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Driver"
-                                    value={newTest.driver}
-                                    onChange={(e) => setNewTest({...newTest, driver: e.target.value})}
-                                    className="w-full px-3 py-2 border rounded"
-                                />
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handleSubmit}
-                                        className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-                                    >
-                                        Adicionar
-                                    </button>
-                                    <button
-                                        onClick={onCancel}
-                                        className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            // Componente do calendário
-            const CalendarView = () => {
-                const today = new Date();
-                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                const startDate = new Date(startOfMonth);
-                startDate.setDate(startDate.getDate() - startDate.getDay());
-
-                const days = [];
-                const currentDate = new Date(startDate);
-
-                while (currentDate <= endOfMonth || currentDate.getDay() !== 0) {
-                    days.push(new Date(currentDate));
-                    currentDate.setDate(currentDate.getDate() + 1);
+        // Alternar configurações
+        function toggleSettings() {
+            const settings = document.getElementById('settings');
+            const isVisible = !settings.classList.contains('hidden');
+            
+            if (isVisible) {
+                settings.classList.add('hidden');
+                console.log('Configurações ocultadas');
+            } else {
+                settings.classList.remove('hidden');
+                console.log('Configurações exibidas');
+                
+                // Focar no campo de data se estiver vazio
+                const dataInicio = document.getElementById('dataInicio');
+                if (!dataInicio.value) {
+                    dataInicio.focus();
                 }
+            }
+        }
 
-                const getTestsForDate = (date) => {
-                    const dateStr = date.toISOString().split('T')[0];
-                    return data.filter(item => item.dataAgendada === dateStr);
+        // Gerar cronograma
+        function generateSchedule() {
+            const fotometriasPerDay = parseInt(document.getElementById('fotometriasPerDay').value);
+            const dataInicio = document.getElementById('dataInicio').value;
+            const nomeProjeto = document.getElementById('nomeProjeto').value.trim();
+            
+            if (!dataInicio) {
+                alert('⚠️ Por favor, selecione uma data de início para o cronograma!');
+                return;
+            }
+            
+            if (!nomeProjeto) {
+                alert('⚠️ Por favor, digite um nome para o projeto!');
+                return;
+            }
+            
+            const pendingItems = ensaios.filter(e => e.status === 'pendente');
+            
+            if (pendingItems.length === 0) {
+                alert('ℹ️ Não há ensaios pendentes para agendar!');
+                return;
+            }
+            
+            let currentDate = new Date(dataInicio);
+            let dailyCount = 0;
+            
+            // Agendar apenas os ensaios pendentes
+            pendingItems.forEach(ensaio => {
+                if (dailyCount >= fotometriasPerDay) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    // Pular fins de semana
+                    while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                    dailyCount = 0;
+                }
+                
+                ensaio.dataAgendada = new Date(currentDate).toISOString().split('T')[0];
+                dailyCount++;
+            });
+            
+            // Criar/atualizar projeto atual
+            projetoAtual = {
+                id: Date.now(),
+                nome: nomeProjeto,
+                dataCreacao: new Date().toISOString().split('T')[0],
+                dataInicio: dataInicio,
+                fotometriasPerDay: fotometriasPerDay,
+                ensaios: JSON.parse(JSON.stringify(ensaios)) // cópia profunda
+            };
+            
+            // Atualizar lista de projetos
+            const projetoExistente = projetos.findIndex(p => p.nome === nomeProjeto);
+            if (projetoExistente !== -1) {
+                projetos[projetoExistente] = projetoAtual;
+            } else {
+                projetos.unshift(projetoAtual); // adiciona no início
+                if (projetos.length > 10) projetos.pop(); // manter apenas 10 projetos
+            }
+            
+            // Salvar no localStorage
+            localStorage.setItem('fotometriaProjetos', JSON.stringify(projetos));
+            
+            // Atualizar todas as visualizações
+            renderTable();
+            renderProjetosList();
+            renderCalendario();
+            updateStats();
+            
+            // Expandir projeto atual
+            setTimeout(() => {
+                const projetoAtualContent = document.getElementById('content-atual');
+                if (projetoAtualContent && !projetoAtualContent.classList.contains('expanded')) {
+                    toggleProjeto('atual');
+                }
+            }, 200);
+            
+            alert(`✅ Cronograma "${nomeProjeto}" gerado com sucesso!\n\n` +
+                  `📅 Início: ${formatarData(dataInicio)}\n` +
+                  `📊 ${pendingItems.length} ensaios agendados\n` +
+                  `⚡ ${fotometriasPerDay} fotometrias por dia\n\n` +
+                  `O projeto foi salvo automaticamente!`);
+        }
+
+        // Salvar projeto atual
+        function salvarProjeto() {
+            const nomeProjeto = prompt('💾 Digite um nome para salvar o projeto atual:', 
+                document.getElementById('nomeProjeto').value || `Projeto ${new Date().toLocaleDateString('pt-BR')}`);
+            if (!nomeProjeto || !nomeProjeto.trim()) return;
+            
+            const projeto = {
+                id: Date.now(),
+                nome: nomeProjeto.trim(),
+                dataCreacao: new Date().toISOString().split('T')[0],
+                dataInicio: document.getElementById('dataInicio').value,
+                fotometriasPerDay: parseInt(document.getElementById('fotometriasPerDay').value),
+                ensaios: JSON.parse(JSON.stringify(ensaios))
+            };
+            
+            projetos.unshift(projeto);
+            if (projetos.length > 10) projetos.pop();
+            
+            localStorage.setItem('fotometriaProjetos', JSON.stringify(projetos));
+            projetoAtual = projeto;
+            
+            renderProjetosList();
+            renderTable();
+            
+            alert(`✅ Projeto "${nomeProjeto.trim()}" salvo com sucesso!`);
+        }
+
+        // Carregar projeto
+        function carregarProjeto(id) {
+            const projeto = projetos.find(p => p.id === id);
+            if (!projeto) {
+                alert('❌ Projeto não encontrado!');
+                return;
+            }
+            
+            if (confirm(`🔄 Carregar projeto "${projeto.nome}"?\n\nIsso substituirá os dados atuais.`)) {
+                // Carregar dados do projeto
+                ensaios = JSON.parse(JSON.stringify(projeto.ensaios));
+                document.getElementById('dataInicio').value = projeto.dataInicio || '';
+                document.getElementById('fotometriasPerDay').value = projeto.fotometriasPerDay || 3;
+                document.getElementById('nomeProjeto').value = projeto.nome + ' (cópia)';
+                
+                // Atualizar projeto atual
+                projetoAtual = {
+                    ...projeto,
+                    id: Date.now(), // novo ID para a cópia
+                    nome: projeto.nome + ' (cópia)',
+                    dataCreacao: new Date().toISOString().split('T')[0]
                 };
+                
+                // Atualizar todas as visualizações
+                renderTable();
+                renderCalendario();
+                updateStats();
+                renderProjetosList();
+                
+                // Expandir projeto atual após carregar
+                setTimeout(() => {
+                    const projetoAtualContent = document.getElementById('content-atual');
+                    if (projetoAtualContent && !projetoAtualContent.classList.contains('expanded')) {
+                        toggleProjeto('atual');
+                    }
+                }, 200);
+                
+                alert(`✅ Projeto "${projeto.nome}" carregado com sucesso!\n\nUm novo projeto foi criado como cópia.`);
+                
+                console.log('Projeto carregado:', projeto);
+                console.log('Ensaios carregados:', ensaios);
+            }
+        }
 
-                return (
-                    <div className="calendar-grid">
-                        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                            <div key={day} className="p-2 text-center font-bold bg-gray-200">
-                                {day}
-                            </div>
-                        ))}
-                        {days.map((day, index) => {
-                            const testsForDay = getTestsForDate(day);
-                            const isCurrentMonth = day.getMonth() === today.getMonth();
-                            const isToday = day.toDateString() === today.toDateString();
+        // Deletar projeto
+        function deletarProjeto(id) {
+            const projeto = projetos.find(p => p.id === id);
+            if (!projeto) return;
+            
+            if (confirm(`🗑️ Deletar projeto "${projeto.nome}"?\n\nEsta ação não pode ser desfeita.`)) {
+                projetos = projetos.filter(p => p.id !== id);
+                localStorage.setItem('fotometriaProjetos', JSON.stringify(projetos));
+                renderProjetosList();
+                
+                alert(`✅ Projeto "${projeto.nome}" deletado!`);
+            }
+        }
 
-                            return (
-                                <div
-                                    key={index}
-                                    className={`calendar-day p-2 border ${
-                                        isCurrentMonth ? 'bg-white' : 'bg-gray-100'
-                                    } ${isToday ? 'bg-blue-100 border-blue-500' : ''}`}
-                                >
-                                    <div className="font-bold text-sm">{day.getDate()}</div>
-                                    <div className="space-y-1">
-                                        {testsForDay.map(test => (
-                                            <div
-                                                key={test.id}
-                                                className={`text-xs p-1 rounded ${
-                                                    test.status === 'concluido' 
-                                                        ? 'bg-green-200 text-green-800' 
-                                                        : 'bg-yellow-200 text-yellow-800'
-                                                }`}
-                                            >
-                                                {test.modelo} {test.potenciaW}W {test.lente}
-                                            </div>
-                                        ))}
-                                    </div>
+        // Renderizar lista de projetos
+        function renderProjetosList() {
+            const container = document.getElementById('projetosList');
+            
+            if (projetos.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">📂 Nenhum projeto salvo ainda</p>';
+                return;
+            }
+            
+            container.innerHTML = projetos.map(projeto => {
+                const concluidos = projeto.ensaios.filter(e => e.status === 'concluido').length;
+                const total = projeto.ensaios.length;
+                const comData = projeto.ensaios.filter(e => e.dataAgendada).length;
+                
+                return `
+                    <div class="bg-white p-2 rounded border text-sm">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <strong>💾 ${projeto.nome}</strong>
+                                <div class="text-xs text-gray-600">
+                                    📅 ${formatarData(projeto.dataCreacao)} | 
+                                    ⚡ ${projeto.fotometriasPerDay || 3}/dia | 
+                                    📊 ${total} ensaios | ✅ ${concluidos} concluídos | 📍 ${comData} agendados
                                 </div>
-                            );
-                        })}
+                                <div class="text-xs text-blue-600 mt-1">
+                                    ✏️ Clique no nome do projeto na lista principal para editar
+                                </div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="duplicarProjeto(${projeto.id})" 
+                                        class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600" 
+                                        title="Duplicar este projeto">📋</button>
+                                <button onclick="exportarProjeto(${projeto.id})" 
+                                        class="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600" 
+                                        title="Exportar este projeto">📥</button>
+                                <button onclick="deletarProjeto(${projeto.id})" 
+                                        class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                                        title="Deletar este projeto">🗑️</button>
+                            </div>
+                        </div>
                     </div>
-                );
+                `;
+            }).join('');
+            
+            console.log('Lista de projetos renderizada:', projetos.length, 'projetos');
+        }
+
+        // Exportar todos os projetos
+        function exportarTodosProjetos() {
+            if (projetos.length === 0) {
+                alert('ℹ️ Não há projetos para exportar!');
+                return;
+            }
+            
+            const dataExport = {
+                exportDate: new Date().toISOString(),
+                version: '1.0',
+                projetos: projetos
             };
+            
+            const blob = new Blob([JSON.stringify(dataExport, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fotometria_projetos_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            alert('📤 Todos os projetos foram exportados!');
+        }
 
-            // Componente de estatísticas
-            const StatsView = () => {
-                const totalTests = data.length;
-                const completedTests = data.filter(item => item.status === 'concluido').length;
-                const pendingTests = totalTests - completedTests;
-                const completionRate = totalTests > 0 ? (completedTests / totalTests * 100).toFixed(1) : 0;
-
-                return (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="bg-blue-100 p-6 rounded-lg">
-                            <h3 className="text-lg font-bold text-blue-800">Total de Ensaios</h3>
-                            <p className="text-3xl font-bold text-blue-600">{totalTests}</p>
-                        </div>
-                        <div className="bg-green-100 p-6 rounded-lg">
-                            <h3 className="text-lg font-bold text-green-800">Concluídos</h3>
-                            <p className="text-3xl font-bold text-green-600">{completedTests}</p>
-                        </div>
-                        <div className="bg-yellow-100 p-6 rounded-lg">
-                            <h3 className="text-lg font-bold text-yellow-800">Pendentes</h3>
-                            <p className="text-3xl font-bold text-yellow-600">{pendingTests}</p>
-                        </div>
-                        <div className="bg-purple-100 p-6 rounded-lg">
-                            <h3 className="text-lg font-bold text-purple-800">Taxa de Conclusão</h3>
-                            <p className="text-3xl font-bold text-purple-600">{completionRate}%</p>
-                        </div>
-                    </div>
-                );
-            };
-
-            return (
-                <div className="min-h-screen bg-gray-50 p-4">
-                    <div className="max-w-7xl mx-auto">
-                        {/* Header */}
-                        <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-                            <div className="flex justify-between items-center flex-wrap gap-4">
-                                <h1 className="text-3xl font-bold text-gray-800">
-                                    Sistema de Acompanhamento de Ensaios Fotométricos
-                                </h1>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setShowSettings(!showSettings)}
-                                        className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                                        title="Configurações"
-                                    >
-                                        <Settings size={20} />
-                                    </button>
-                                    <button
-                                        onClick={exportCSV}
-                                        className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
-                                        title="Exportar CSV"
-                                    >
-                                        <Download size={20} />
-                                    </button>
-                                    <button
-                                        onClick={() => setShowAddForm(true)}
-                                        className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                        title="Adicionar Ensaio"
-                                    >
-                                        <Plus size={20} />
-                                    </button>
-                                </div>
+        // Renderizar calendário
+        function renderCalendario() {
+            const mes = parseInt(document.getElementById('mesCalendario').value);
+            const ano = parseInt(document.getElementById('anoCalendario').value);
+            
+            // Primeiro e último dia do mês
+            const primeiroDia = new Date(ano, mes, 1);
+            const ultimoDia = new Date(ano, mes + 1, 0);
+            const primeiroDiaSemana = primeiroDia.getDay();
+            const hoje = new Date();
+            
+            const diasContainer = document.getElementById('calendarioDias');
+            diasContainer.innerHTML = '';
+            
+            // Adicionar dias vazios do mês anterior
+            for (let i = 0; i < primeiroDiaSemana; i++) {
+                const diaAnterior = new Date(ano, mes, 0 - (primeiroDiaSemana - 1 - i));
+                const diaVazio = document.createElement('div');
+                diaVazio.className = 'p-2 h-24 border border-gray-200 bg-gray-50 text-gray-400';
+                diaVazio.innerHTML = `<div class="text-sm">${diaAnterior.getDate()}</div>`;
+                diasContainer.appendChild(diaVazio);
+            }
+            
+            // Adicionar dias do mês atual
+            for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+                const dataAtual = new Date(ano, mes, dia);
+                const dataStr = dataAtual.toISOString().split('T')[0];
+                const ensaiosDia = ensaios.filter(e => e.dataAgendada === dataStr);
+                
+                const diaDiv = document.createElement('div');
+                diaDiv.className = 'p-2 h-24 border border-gray-200 bg-white relative overflow-y-auto';
+                
+                // Destacar dia atual
+                const isHoje = hoje.toDateString() === dataAtual.toDateString();
+                if (isHoje) {
+                    diaDiv.classList.remove('bg-white');
+                    diaDiv.classList.add('bg-blue-100', 'border-blue-400');
+                }
+                
+                // Destacar fins de semana
+                const diaSemana = dataAtual.getDay();
+                if (diaSemana === 0 || diaSemana === 6) {
+                    if (!isHoje) {
+                        diaDiv.classList.remove('bg-white');
+                        diaDiv.classList.add('bg-gray-50');
+                    }
+                }
+                
+                let ensaiosHtml = '';
+                if (ensaiosDia.length > 0) {
+                    ensaiosHtml = ensaiosDia.map(ensaio => {
+                        const statusClass = ensaio.status === 'concluido' 
+                            ? 'bg-green-200 text-green-800' 
+                            : 'bg-yellow-200 text-yellow-800';
+                        
+                        return `
+                            <div class="text-xs p-1 rounded mb-1 ${statusClass}" 
+                                 title="${ensaio.modelo} ${ensaio.potenciaW}W ${ensaio.lente} - ${ensaio.driver}">
+                                ${ensaio.modelo} ${ensaio.potenciaW}W
+                                <br><span class="text-xs opacity-75">${ensaio.lente}</span>
                             </div>
-
-                            {/* Configurações */}
-                            {showSettings && (
-                                <div className="mt-4 p-4 bg-gray-100 rounded">
-                                    <div className="flex items-center gap-4 flex-wrap">
-                                        <label className="font-medium">Fotometrias por dia:</label>
-                                        <input
-                                            type="number"
-                                            value={fotometriasPerDay}
-                                            onChange={(e) => setFotometriasPerDay(parseInt(e.target.value))}
-                                            className="w-20 px-2 py-1 border rounded"
-                                            min="1"
-                                            max="10"
-                                        />
-                                        <button
-                                            onClick={generateSchedule}
-                                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                        >
-                                            Gerar Cronograma
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Navigation Tabs */}
-                        <div className="bg-white shadow rounded-lg mb-6">
-                            <div className="flex border-b overflow-x-auto">
-                                {[
-                                    { id: 'lista', label: 'Lista de Ensaios', icon: CheckSquare },
-                                    { id: 'calendario', label: 'Calendário', icon: Calendar },
-                                    { id: 'estatisticas', label: 'Estatísticas', icon: BarChart3 }
-                                ].map(tab => {
-                                    const IconComponent = tab.icon;
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={`flex items-center gap-2 px-6 py-3 font-medium whitespace-nowrap ${
-                                                activeTab === tab.id
-                                                    ? 'bg-blue-500 text-white'
-                                                    : 'text-gray-600 hover:bg-gray-100'
-                                            }`}
-                                        >
-                                            <IconComponent size={20} />
-                                            {tab.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="bg-white shadow rounded-lg p-6">
-                            {activeTab === 'lista' && (
-                                <div>
-                                    <h2 className="text-2xl font-bold mb-4">Lista de Ensaios</h2>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full border-collapse border">
-                                            <thead>
-                                                <tr className="bg-gray-100">
-                                                    <th className="px-4 py-2 border text-left">Modelo</th>
-                                                    <th className="px-4 py-2 border text-left">Potência (W)</th>
-                                                    <th className="px-4 py-2 border text-left">LED</th>
-                                                    <th className="px-4 py-2 border text-left">Lente</th>
-                                                    <th className="px-4 py-2 border text-left">Driver</th>
-                                                    <th className="px-4 py-2 border text-left">N° Ensaio</th>
-                                                    <th className="px-4 py-2 border text-left">Potência Real</th>
-                                                    <th className="px-4 py-2 border text-left">Fluxo (lm)</th>
-                                                    <th className="px-4 py-2 border text-left">EFF (lm/W)</th>
-                                                    <th className="px-4 py-2 border text-left">Ações</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {data.map(item => (
-                                                    editingId === item.id ? (
-                                                        <EditableRow
-                                                            key={item.id}
-                                                            item={item}
-                                                            onSave={markAsCompleted}
-                                                            onCancel={() => setEditingId(null)}
-                                                        />
-                                                    ) : (
-                                                        <tr
-                                                            key={item.id}
-                                                            className={item.status === 'concluido' ? 'bg-green-50' : ''}
-                                                        >
-                                                            <td className="px-4 py-2 border">{item.modelo}</td>
-                                                            <td className="px-4 py-2 border">{item.potenciaW}W</td>
-                                                            <td className="px-4 py-2 border">{item.led}</td>
-                                                            <td className="px-4 py-2 border">{item.lente}</td>
-                                                            <td className="px-4 py-2 border">{item.driver}</td>
-                                                            <td className="px-4 py-2 border">
-                                                                {item.numeroEnsaio || '-'}
-                                                            </td>
-                                                            <td className="px-4 py-2 border">
-                                                                {item.potenciaReal ? `${item.potenciaReal}W` : '-'}
-                                                            </td>
-                                                            <td className="px-4 py-2 border">
-                                                                {item.fluxoLm ? `${item.fluxoLm} lm` : '-'}
-                                                            </td>
-                                                            <td className="px-4 py-2 border">
-                                                                {item.effLmW ? `${item.effLmW} lm/W` : '-'}
-                                                            </td>
-                                                            <td className="px-4 py-2 border">
-                                                                <div className="flex gap-2">
-                                                                    {item.status === 'pendente' ? (
-                                                                        <button
-                                                                            onClick={() => setEditingId(item.id)}
-                                                                            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                                                            title="Editar"
-                                                                        >
-                                                                            <Edit3 size={16} />
-                                                                        </button>
-                                                                    ) : (
-                                                                        <CheckSquare size={16} className="text-green-500" />
-                                                                    )}
-                                                                    <button
-                                                                        onClick={() => deleteTest(item.id)}
-                                                                        className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-                                                                        title="Deletar"
-                                                                    >
-                                                                        <Trash2 size={16} />
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'calendario' && (
-                                <div>
-                                    <h2 className="text-2xl font-bold mb-4">Calendário de Ensaios</h2>
-                                    <CalendarView />
-                                </div>
-                            )}
-
-                            {activeTab === 'estatisticas' && (
-                                <div>
-                                    <h2 className="text-2xl font-bold mb-4">Estatísticas</h2>
-                                    <StatsView />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Modal para adicionar novo ensaio */}
-                        {showAddForm && (
-                            <AddTestForm
-                                onAdd={addNewTest}
-                                onCancel={() => setShowAddForm(false)}
-                            />
-                        )}
+                        `;
+                    }).join('');
+                } else {
+                    // Não mostrar nada quando não há ensaios - deixar limpo
+                    ensaiosHtml = '';
+                }
+                
+                diaDiv.innerHTML = `
+                    <div class="font-bold text-sm mb-1 ${isHoje ? 'text-blue-800' : 'text-gray-700'}">
+                        ${dia}
+                        ${isHoje ? '<span class="text-xs bg-blue-600 text-white px-1 rounded ml-1">HOJE</span>' : ''}
                     </div>
-                </div>
-            );
+                    <div class="space-y-1">
+                        ${ensaiosHtml}
+                    </div>
+                `;
+                
+                diasContainer.appendChild(diaDiv);
+            }
+            
+            // Preencher resto da grade com dias do próximo mês se necessário
+            const totalCelulas = diasContainer.children.length;
+            const celulasNecessarias = Math.ceil(totalCelulas / 7) * 7; // Completar semanas
+            
+            for (let i = 1; totalCelulas + i - 1 < celulasNecessarias; i++) {
+                const proximoDia = new Date(ano, mes + 1, i);
+                const diaProximo = document.createElement('div');
+                diaProximo.className = 'p-2 h-24 border border-gray-200 bg-gray-50 text-gray-400';
+                diaProximo.innerHTML = `<div class="text-sm">${proximoDia.getDate()}</div>`;
+                diasContainer.appendChild(diaProximo);
+            }
+        }
+
+        // Inicializar selects do calendário
+        function initCalendario() {
+            const hoje = new Date();
+            const mesSelect = document.getElementById('mesCalendario');
+            const anoSelect = document.getElementById('anoCalendario');
+            
+            // Preencher meses
+            const meses = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ];
+            
+            mesSelect.innerHTML = meses.map((mes, index) => 
+                `<option value="${index}" ${index === hoje.getMonth() ? 'selected' : ''}>${mes}</option>`
+            ).join('');
+            
+            // Preencher anos (atual ± 2 anos)
+            for (let ano = hoje.getFullYear() - 2; ano <= hoje.getFullYear() + 2; ano++) {
+                const option = document.createElement('option');
+                option.value = ano;
+                option.textContent = ano;
+                if (ano === hoje.getFullYear()) option.selected = true;
+                anoSelect.appendChild(option);
+            }
+        }
+
+        // Formatar data
+        function formatarData(dataStr) {
+            if (!dataStr) return '-';
+            const data = new Date(dataStr + 'T00:00:00');
+            return data.toLocaleDateString('pt-BR');
+        }
+
+        // Exportar CSV (projeto atual)
+        function exportCSV() {
+            if (ensaios.length === 0) {
+                alert('⚠️ Não há ensaios no projeto atual para exportar!');
+                return;
+            }
+            
+            const headers = ['Modelo', 'Potência (W)', 'LED', 'Lente', 'Driver', 'Data Agendada', 'N° ensaio realizado', 'Potência Real', 'Fluxo (lm)', 'EFF (lm/W)', 'Status'];
+            const csvContent = [
+                headers.join(','),
+                ...ensaios.map(e => [
+                    `"${e.modelo}"`,
+                    e.potenciaW,
+                    `"${e.led}"`,
+                    `"${e.lente}"`,
+                    `"${e.driver}"`,
+                    e.dataAgendada || '',
+                    `"${e.numeroEnsaio}"`,
+                    e.potenciaReal || '',
+                    e.fluxoLm || '',
+                    e.effLmW || '',
+                    e.status
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            const nomeArquivo = `projeto_atual_${new Date().toISOString().split('T')[0]}.csv`;
+            
+            a.download = nomeArquivo;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert(`📥 Projeto atual exportado como "${nomeArquivo}"!`);
+            console.log('CSV exportado:', { ensaios: ensaios.length, arquivo: nomeArquivo });
+        }
+
+        // Mostrar aba
+        function showTab(tab) {
+            // Esconder todas as abas
+            document.getElementById('content-lista').classList.add('hidden');
+            document.getElementById('content-calendario').classList.add('hidden');
+            document.getElementById('content-estatisticas').classList.add('hidden');
+            
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            // Mostrar aba selecionada
+            document.getElementById('content-' + tab).classList.remove('hidden');
+            document.getElementById('tab-' + tab).classList.add('active');
+            
+            // Atualizar conteúdo específico da aba
+            if (tab === 'calendario') {
+                renderCalendario();
+            } else if (tab === 'estatisticas') {
+                updateStats();
+            } else if (tab === 'lista') {
+                // Garantir que o projeto atual esteja expandido
+                setTimeout(() => {
+                    const projetoAtualContent = document.getElementById('content-atual');
+                    if (projetoAtualContent && !projetoAtualContent.classList.contains('expanded')) {
+                        toggleProjeto('atual');
+                    }
+                }, 100);
+            }
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            const total = ensaios.length;
+            const concluidos = ensaios.filter(e => e.status === 'concluido').length;
+            const pendentes = total - concluidos;
+            const taxa = total > 0 ? ((concluidos / total) * 100).toFixed(1) : 0;
+            
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-concluidos').textContent = concluidos;
+            document.getElementById('stat-pendentes').textContent = pendentes;
+            document.getElementById('stat-taxa').textContent = taxa + '%';
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Inicializando Sistema de Fotometria...');
+            
+            // Definir data de início padrão como hoje
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('dataInicio').value = hoje;
+            
+            // Gerar nome de projeto padrão
+            const agora = new Date();
+            const nomePadrao = `Cronograma ${agora.toLocaleDateString('pt-BR')}`;
+            document.getElementById('nomeProjeto').value = nomePadrao;
+            
+            // Verificar integridade dos dados
+            console.log('📊 Dados iniciais:', {
+                ensaios: ensaios.length,
+                projetos: projetos.length,
+                projetoAtual: projetoAtual
+            });
+            
+            // Inicializar componentes na ordem correta
+            try {
+                initCalendario();
+                console.log('✅ Calendário inicializado');
+                
+                updateStats();
+                console.log('✅ Estatísticas inicializadas');
+                
+                renderProjetosList();
+                console.log('✅ Lista de projetos renderizada');
+                
+                renderTable();
+                console.log('✅ Tabela renderizada');
+                
+                renderCalendario();
+                console.log('✅ Calendário renderizado');
+                
+                // Expandir projeto atual por padrão
+                setTimeout(() => {
+                    const projetoAtual = document.getElementById('content-atual');
+                    if (projetoAtual && !projetoAtual.classList.contains('expanded')) {
+                        toggleProjeto('atual');
+                        console.log('✅ Projeto atual expandido');
+                    }
+                }, 300);
+                
+                // Adicionar evento para evitar que cliques na área de conteúdo fechem projetos
+                document.body.addEventListener('click', function(e) {
+                    // Se o clique foi em um botão ou input dentro do conteúdo, não fechar
+                    const isInsideContent = e.target.closest('.projeto-content, .ensaios-table-container, .projeto-stats');
+                    const isButton = e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT';
+                    const isHeader = e.target.closest('.projeto-header');
+                    
+                    // Permitir toggle apenas se clicou no header E não em botões
+                    if (isInsideContent && !isHeader) {
+                        e.stopPropagation();
+                    }
+                });
+                
+                console.log('🎉 Sistema inicializado com sucesso!');
+                
+            } catch (error) {
+                console.error('❌ Erro na inicialização:', error);
+                alert('⚠️ Erro ao inicializar o sistema. Verifique o console para detalhes.');
+            }
+        });
+
+        // Função de debug para verificar estado
+        function debugStatus() {
+            console.log('=== STATUS DO SISTEMA ATUALIZADO ===');
+            console.log('Ensaios (Projeto Atual):', ensaios);
+            console.log('Projetos Salvos:', projetos);
+            console.log('Projeto Atual (referência):', projetoAtual);
+            console.log('Editing ID:', editingId);
+            console.log('Editing Project ID:', editingProjectId);
+            console.log('LocalStorage:', localStorage.getItem('fotometriaProjetos'));
+            console.log('Total de projetos:', projetos.length);
+            console.log('Total ensaios projeto atual:', ensaios.length);
+            projetos.forEach((p, i) => {
+                console.log(`Projeto ${i + 1}: ${p.nome} (${p.ensaios.length} ensaios)`);
+            });
+            console.log('====================================');
+        }
+
+        // Adicionar função de debug ao objeto window para acesso via console
+        window.debugFotometria = debugStatus;
+        
+        // Função para forçar atualização completa (útil para debug)
+        window.forceUpdate = function() {
+            console.log('🔄 Forçando atualização completa...');
+            renderTable();
+            renderCalendario();
+            updateStats();
+            renderProjetosList();
+            console.log('✅ Atualização completa finalizada');
         };
-
-        // Renderizar a aplicação
-        ReactDOM.render(<FotometriaTracker />, document.getElementById('root'));
     </script>
 </body>
 </html>
