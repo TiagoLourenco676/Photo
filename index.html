@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Acompanhamento de Ensaios Fotométricos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React e ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+        .calendar-day { min-height: 6rem; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Calendar, CheckSquare, Plus, Download, Upload, Settings, Edit3, Trash2, Save, X, Clock, BarChart3 } = lucide;
+
+        const FotometriaTracker = () => {
+            // Dados iniciais da planilha
+            const initialData = [
+                { id: 1, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "30°", driver: "SS-150VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 2, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "60°", driver: "SS-150VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 3, modelo: "PRJ4", potenciaW: 150, led: "ZS245B 5000K", lente: "90°", driver: "SS-150VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 4, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "30°", driver: "SS-200VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 5, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "60°", driver: "SS-200VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 6, modelo: "PRJ4", potenciaW: 200, led: "ZS245B 5000K", lente: "90°", driver: "SS-200VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 7, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "30°", driver: "SS-200VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 8, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "60°", driver: "SS-200VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 9, modelo: "PRJ6", potenciaW: 200, led: "ZS245B 5000K", lente: "90°", driver: "SS-200VH-56B", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 10, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "30°", driver: "SS-240VH-XXXB", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 11, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "60°", driver: "SS-240VH-XXXB", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 12, modelo: "PRJ6", potenciaW: 220, led: "ZS245B 5000K", lente: "90°", driver: "SS-240VH-XXXB", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 13, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "30°", driver: "SS-240VH-XXXB", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 14, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "60°", driver: "SS-240VH-XXXB", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null },
+                { id: 15, modelo: "PRJ6", potenciaW: 240, led: "ZS245B 5000K", lente: "90°", driver: "SS-240VH-XXXB", 
+                  numeroEnsaio: "", potenciaReal: "", fluxoLm: "", effLmW: "", status: "pendente", dataAgendada: null }
+            ];
+
+            const [data, setData] = useState(initialData);
+            const [activeTab, setActiveTab] = useState('lista');
+            const [editingId, setEditingId] = useState(null);
+            const [showAddForm, setShowAddForm] = useState(false);
+            const [fotometriasPerDay, setFotometriasPerDay] = useState(3);
+            const [showSettings, setShowSettings] = useState(false);
+
+            // Gerar cronograma automático
+            const generateSchedule = () => {
+                const today = new Date();
+                const pendingItems = data.filter(item => item.status === 'pendente');
+                const newData = [...data];
+                
+                let currentDate = new Date(today);
+                let dailyCount = 0;
+                
+                pendingItems.forEach((item, index) => {
+                    if (dailyCount >= fotometriasPerDay) {
+                        currentDate.setDate(currentDate.getDate() + 1);
+                        // Pular fins de semana
+                        while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                        dailyCount = 0;
+                    }
+                    
+                    const itemIndex = newData.findIndex(d => d.id === item.id);
+                    newData[itemIndex] = {
+                        ...newData[itemIndex],
+                        dataAgendada: new Date(currentDate).toISOString().split('T')[0]
+                    };
+                    
+                    dailyCount++;
+                });
+                
+                setData(newData);
+            };
+
+            // Função para marcar como concluído
+            const markAsCompleted = (id, results) => {
+                const newData = data.map(item => {
+                    if (item.id === id) {
+                        return {
+                            ...item,
+                            ...results,
+                            status: 'concluido'
+                        };
+                    }
+                    return item;
+                });
+                setData(newData);
+                setEditingId(null);
+            };
+
+            // Função para adicionar novo ensaio
+            const addNewTest = (newTest) => {
+                const newId = Math.max(...data.map(item => item.id)) + 1;
+                const newItem = {
+                    id: newId,
+                    ...newTest,
+                    numeroEnsaio: "",
+                    potenciaReal: "",
+                    fluxoLm: "",
+                    effLmW: "",
+                    status: "pendente",
+                    dataAgendada: null
+                };
+                setData([...data, newItem]);
+                setShowAddForm(false);
+            };
+
+            // Função para deletar ensaio
+            const deleteTest = (id) => {
+                setData(data.filter(item => item.id !== id));
+            };
+
+            // Função para exportar CSV
+            const exportCSV = () => {
+                const headers = ['Modelo', 'Potência (W)', 'LED', 'Lente', 'Driver', 'N° ensaio realizado', 'Potência', 'Fluxo (lm)', 'EFF (lm/W)', 'Status', 'Data Agendada'];
+                const csvContent = [
+                    headers.join(','),
+                    ...data.map(item => [
+                        item.modelo,
+                        item.potenciaW,
+                        item.led,
+                        item.lente,
+                        item.driver,
+                        item.numeroEnsaio,
+                        item.potenciaReal,
+                        item.fluxoLm,
+                        item.effLmW,
+                        item.status,
+                        item.dataAgendada || ''
+                    ].join(','))
+                ].join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('hidden', '');
+                a.setAttribute('href', url);
+                a.setAttribute('download', 'ensaios_fotometricos.csv');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+
+            // Componente de edição inline
+            const EditableRow = ({ item, onSave, onCancel }) => {
+                const [values, setValues] = useState({
+                    numeroEnsaio: item.numeroEnsaio,
+                    potenciaReal: item.potenciaReal,
+                    fluxoLm: item.fluxoLm,
+                    effLmW: item.effLmW
+                });
+
+                const handleSave = () => {
+                    onSave(item.id, values);
+                };
+
+                return (
+                    <tr className="bg-blue-50">
+                        <td className="px-4 py-2 border">{item.modelo}</td>
+                        <td className="px-4 py-2 border">{item.potenciaW}W</td>
+                        <td className="px-4 py-2 border">{item.led}</td>
+                        <td className="px-4 py-2 border">{item.lente}</td>
+                        <td className="px-4 py-2 border">{item.driver}</td>
+                        <td className="px-4 py-2 border">
+                            <input
+                                type="text"
+                                value={values.numeroEnsaio}
+                                onChange={(e) => setValues({...values, numeroEnsaio: e.target.value})}
+                                className="w-full px-2 py-1 border rounded"
+                                placeholder="N° ensaio"
+                            />
+                        </td>
+                        <td className="px-4 py-2 border">
+                            <input
+                                type="number"
+                                value={values.potenciaReal}
+                                onChange={(e) => setValues({...values, potenciaReal: e.target.value})}
+                                className="w-full px-2 py-1 border rounded"
+                                placeholder="Potência real"
+                            />
+                        </td>
+                        <td className="px-4 py-2 border">
+                            <input
+                                type="number"
+                                value={values.fluxoLm}
+                                onChange={(e) => setValues({...values, fluxoLm: e.target.value})}
+                                className="w-full px-2 py-1 border rounded"
+                                placeholder="Fluxo (lm)"
+                            />
+                        </td>
+                        <td className="px-4 py-2 border">
+                            <input
+                                type="number"
+                                value={values.effLmW}
+                                onChange={(e) => setValues({...values, effLmW: e.target.value})}
+                                className="w-full px-2 py-1 border rounded"
+                                placeholder="EFF (lm/W)"
+                            />
+                        </td>
+                        <td className="px-4 py-2 border">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSave}
+                                    className="p-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                >
+                                    <Save size={16} />
+                                </button>
+                                <button
+                                    onClick={onCancel}
+                                    className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                );
+            };
+
+            // Componente de formulário para novo ensaio
+            const AddTestForm = ({ onAdd, onCancel }) => {
+                const [newTest, setNewTest] = useState({
+                    modelo: '',
+                    potenciaW: '',
+                    led: '',
+                    lente: '',
+                    driver: ''
+                });
+
+                const handleSubmit = () => {
+                    if (newTest.modelo && newTest.potenciaW && newTest.led && newTest.lente && newTest.driver) {
+                        onAdd(newTest);
+                        setNewTest({ modelo: '', potenciaW: '', led: '', lente: '', driver: '' });
+                    }
+                };
+
+                return (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg w-96">
+                            <h3 className="text-lg font-bold mb-4">Adicionar Novo Ensaio</h3>
+                            <div className="space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Modelo"
+                                    value={newTest.modelo}
+                                    onChange={(e) => setNewTest({...newTest, modelo: e.target.value})}
+                                    className="w-full px-3 py-2 border rounded"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Potência (W)"
+                                    value={newTest.potenciaW}
+                                    onChange={(e) => setNewTest({...newTest, potenciaW: parseInt(e.target.value)})}
+                                    className="w-full px-3 py-2 border rounded"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="LED"
+                                    value={newTest.led}
+                                    onChange={(e) => setNewTest({...newTest, led: e.target.value})}
+                                    className="w-full px-3 py-2 border rounded"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Lente"
+                                    value={newTest.lente}
+                                    onChange={(e) => setNewTest({...newTest, lente: e.target.value})}
+                                    className="w-full px-3 py-2 border rounded"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Driver"
+                                    value={newTest.driver}
+                                    onChange={(e) => setNewTest({...newTest, driver: e.target.value})}
+                                    className="w-full px-3 py-2 border rounded"
+                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleSubmit}
+                                        className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+                                    >
+                                        Adicionar
+                                    </button>
+                                    <button
+                                        onClick={onCancel}
+                                        className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // Componente do calendário
+            const CalendarView = () => {
+                const today = new Date();
+                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                const startDate = new Date(startOfMonth);
+                startDate.setDate(startDate.getDate() - startDate.getDay());
+
+                const days = [];
+                const currentDate = new Date(startDate);
+
+                while (currentDate <= endOfMonth || currentDate.getDay() !== 0) {
+                    days.push(new Date(currentDate));
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                const getTestsForDate = (date) => {
+                    const dateStr = date.toISOString().split('T')[0];
+                    return data.filter(item => item.dataAgendada === dateStr);
+                };
+
+                return (
+                    <div className="calendar-grid">
+                        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+                            <div key={day} className="p-2 text-center font-bold bg-gray-200">
+                                {day}
+                            </div>
+                        ))}
+                        {days.map((day, index) => {
+                            const testsForDay = getTestsForDate(day);
+                            const isCurrentMonth = day.getMonth() === today.getMonth();
+                            const isToday = day.toDateString() === today.toDateString();
+
+                            return (
+                                <div
+                                    key={index}
+                                    className={`calendar-day p-2 border ${
+                                        isCurrentMonth ? 'bg-white' : 'bg-gray-100'
+                                    } ${isToday ? 'bg-blue-100 border-blue-500' : ''}`}
+                                >
+                                    <div className="font-bold text-sm">{day.getDate()}</div>
+                                    <div className="space-y-1">
+                                        {testsForDay.map(test => (
+                                            <div
+                                                key={test.id}
+                                                className={`text-xs p-1 rounded ${
+                                                    test.status === 'concluido' 
+                                                        ? 'bg-green-200 text-green-800' 
+                                                        : 'bg-yellow-200 text-yellow-800'
+                                                }`}
+                                            >
+                                                {test.modelo} {test.potenciaW}W {test.lente}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            };
+
+            // Componente de estatísticas
+            const StatsView = () => {
+                const totalTests = data.length;
+                const completedTests = data.filter(item => item.status === 'concluido').length;
+                const pendingTests = totalTests - completedTests;
+                const completionRate = totalTests > 0 ? (completedTests / totalTests * 100).toFixed(1) : 0;
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="bg-blue-100 p-6 rounded-lg">
+                            <h3 className="text-lg font-bold text-blue-800">Total de Ensaios</h3>
+                            <p className="text-3xl font-bold text-blue-600">{totalTests}</p>
+                        </div>
+                        <div className="bg-green-100 p-6 rounded-lg">
+                            <h3 className="text-lg font-bold text-green-800">Concluídos</h3>
+                            <p className="text-3xl font-bold text-green-600">{completedTests}</p>
+                        </div>
+                        <div className="bg-yellow-100 p-6 rounded-lg">
+                            <h3 className="text-lg font-bold text-yellow-800">Pendentes</h3>
+                            <p className="text-3xl font-bold text-yellow-600">{pendingTests}</p>
+                        </div>
+                        <div className="bg-purple-100 p-6 rounded-lg">
+                            <h3 className="text-lg font-bold text-purple-800">Taxa de Conclusão</h3>
+                            <p className="text-3xl font-bold text-purple-600">{completionRate}%</p>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-4">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Header */}
+                        <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+                            <div className="flex justify-between items-center flex-wrap gap-4">
+                                <h1 className="text-3xl font-bold text-gray-800">
+                                    Sistema de Acompanhamento de Ensaios Fotométricos
+                                </h1>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowSettings(!showSettings)}
+                                        className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                        title="Configurações"
+                                    >
+                                        <Settings size={20} />
+                                    </button>
+                                    <button
+                                        onClick={exportCSV}
+                                        className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
+                                        title="Exportar CSV"
+                                    >
+                                        <Download size={20} />
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAddForm(true)}
+                                        className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        title="Adicionar Ensaio"
+                                    >
+                                        <Plus size={20} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Configurações */}
+                            {showSettings && (
+                                <div className="mt-4 p-4 bg-gray-100 rounded">
+                                    <div className="flex items-center gap-4 flex-wrap">
+                                        <label className="font-medium">Fotometrias por dia:</label>
+                                        <input
+                                            type="number"
+                                            value={fotometriasPerDay}
+                                            onChange={(e) => setFotometriasPerDay(parseInt(e.target.value))}
+                                            className="w-20 px-2 py-1 border rounded"
+                                            min="1"
+                                            max="10"
+                                        />
+                                        <button
+                                            onClick={generateSchedule}
+                                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        >
+                                            Gerar Cronograma
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Navigation Tabs */}
+                        <div className="bg-white shadow rounded-lg mb-6">
+                            <div className="flex border-b overflow-x-auto">
+                                {[
+                                    { id: 'lista', label: 'Lista de Ensaios', icon: CheckSquare },
+                                    { id: 'calendario', label: 'Calendário', icon: Calendar },
+                                    { id: 'estatisticas', label: 'Estatísticas', icon: BarChart3 }
+                                ].map(tab => {
+                                    const IconComponent = tab.icon;
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={`flex items-center gap-2 px-6 py-3 font-medium whitespace-nowrap ${
+                                                activeTab === tab.id
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            <IconComponent size={20} />
+                                            {tab.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="bg-white shadow rounded-lg p-6">
+                            {activeTab === 'lista' && (
+                                <div>
+                                    <h2 className="text-2xl font-bold mb-4">Lista de Ensaios</h2>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full border-collapse border">
+                                            <thead>
+                                                <tr className="bg-gray-100">
+                                                    <th className="px-4 py-2 border text-left">Modelo</th>
+                                                    <th className="px-4 py-2 border text-left">Potência (W)</th>
+                                                    <th className="px-4 py-2 border text-left">LED</th>
+                                                    <th className="px-4 py-2 border text-left">Lente</th>
+                                                    <th className="px-4 py-2 border text-left">Driver</th>
+                                                    <th className="px-4 py-2 border text-left">N° Ensaio</th>
+                                                    <th className="px-4 py-2 border text-left">Potência Real</th>
+                                                    <th className="px-4 py-2 border text-left">Fluxo (lm)</th>
+                                                    <th className="px-4 py-2 border text-left">EFF (lm/W)</th>
+                                                    <th className="px-4 py-2 border text-left">Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {data.map(item => (
+                                                    editingId === item.id ? (
+                                                        <EditableRow
+                                                            key={item.id}
+                                                            item={item}
+                                                            onSave={markAsCompleted}
+                                                            onCancel={() => setEditingId(null)}
+                                                        />
+                                                    ) : (
+                                                        <tr
+                                                            key={item.id}
+                                                            className={item.status === 'concluido' ? 'bg-green-50' : ''}
+                                                        >
+                                                            <td className="px-4 py-2 border">{item.modelo}</td>
+                                                            <td className="px-4 py-2 border">{item.potenciaW}W</td>
+                                                            <td className="px-4 py-2 border">{item.led}</td>
+                                                            <td className="px-4 py-2 border">{item.lente}</td>
+                                                            <td className="px-4 py-2 border">{item.driver}</td>
+                                                            <td className="px-4 py-2 border">
+                                                                {item.numeroEnsaio || '-'}
+                                                            </td>
+                                                            <td className="px-4 py-2 border">
+                                                                {item.potenciaReal ? `${item.potenciaReal}W` : '-'}
+                                                            </td>
+                                                            <td className="px-4 py-2 border">
+                                                                {item.fluxoLm ? `${item.fluxoLm} lm` : '-'}
+                                                            </td>
+                                                            <td className="px-4 py-2 border">
+                                                                {item.effLmW ? `${item.effLmW} lm/W` : '-'}
+                                                            </td>
+                                                            <td className="px-4 py-2 border">
+                                                                <div className="flex gap-2">
+                                                                    {item.status === 'pendente' ? (
+                                                                        <button
+                                                                            onClick={() => setEditingId(item.id)}
+                                                                            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                                            title="Editar"
+                                                                        >
+                                                                            <Edit3 size={16} />
+                                                                        </button>
+                                                                    ) : (
+                                                                        <CheckSquare size={16} className="text-green-500" />
+                                                                    )}
+                                                                    <button
+                                                                        onClick={() => deleteTest(item.id)}
+                                                                        className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                                                        title="Deletar"
+                                                                    >
+                                                                        <Trash2 size={16} />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'calendario' && (
+                                <div>
+                                    <h2 className="text-2xl font-bold mb-4">Calendário de Ensaios</h2>
+                                    <CalendarView />
+                                </div>
+                            )}
+
+                            {activeTab === 'estatisticas' && (
+                                <div>
+                                    <h2 className="text-2xl font-bold mb-4">Estatísticas</h2>
+                                    <StatsView />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal para adicionar novo ensaio */}
+                        {showAddForm && (
+                            <AddTestForm
+                                onAdd={addNewTest}
+                                onCancel={() => setShowAddForm(false)}
+                            />
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Renderizar a aplicação
+        ReactDOM.render(<FotometriaTracker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
